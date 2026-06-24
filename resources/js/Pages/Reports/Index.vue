@@ -8,6 +8,7 @@ import SearchableSelect from '@/Components/UI/SearchableSelect.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import {
+    ArrowDownTrayIcon,
     ChartBarIcon,
     CheckCircleIcon,
     ClipboardDocumentListIcon,
@@ -73,6 +74,15 @@ const priorityBarClass = {
     amber: 'bg-amber-400',
     rose: 'bg-rose-500',
 };
+
+const exportQuery = computed(() => {
+    const params = new URLSearchParams();
+    if (localProjectId.value) {
+        params.set('project', localProjectId.value);
+    }
+    const qs = params.toString();
+    return qs ? `?${qs}` : '';
+});
 </script>
 
 <template>
@@ -94,9 +104,22 @@ const priorityBarClass = {
                     @update:model-value="applyProjectFilter"
                 />
             </div>
-            <p class="text-xs text-slate-500">
-                Data sesuai project yang dapat Anda akses
-            </p>
+            <div class="flex flex-wrap items-center gap-2">
+                <a
+                    :href="route('reports.export.projects') + exportQuery"
+                    class="btn-secondary inline-flex items-center gap-1.5 text-sm"
+                >
+                    <ArrowDownTrayIcon class="h-4 w-4" />
+                    Export Project (CSV)
+                </a>
+                <a
+                    :href="route('reports.export.tasks') + exportQuery"
+                    class="btn-secondary inline-flex items-center gap-1.5 text-sm"
+                >
+                    <ArrowDownTrayIcon class="h-4 w-4" />
+                    Export Task (CSV)
+                </a>
+            </div>
         </div>
 
         <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

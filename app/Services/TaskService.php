@@ -78,6 +78,10 @@ class TaskService
                 ])
             );
 
+            if ($assignee && (int) $assignee->id !== (int) $actor->id) {
+                $assignee->notify(new \App\Notifications\TaskAssignedNotification($task, $actor));
+            }
+
             return $task;
         });
     }

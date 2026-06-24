@@ -21,10 +21,25 @@ class ProjectMemberService
 
             $normalized = collect($members)
                 ->filter(fn (array $row) => filled($row['user_id'] ?? null))
-                ->map(fn (array $row) => [
-                    'user_id' => (int) $row['user_id'],
-                    'access' => $row['access'],
-                ])
+                ->map(function (array $row) {
+                    $userId = (int) $row['user_id'];
+                    $access = (string) $row['access'];
+
+                    $memberUser = User::query()
+                        ->with('role:id,slug')
+                        ->find($userId);
+
+                    if ($memberUser?->role?->slug === 'team-lead'
+                        && $access !== ProjectMemberAccess::Admin->value
+                    ) {
+                        $access = ProjectMemberAccess::Admin->value;
+                    }
+
+                    return [
+                        'user_id' => $userId,
+                        'access' => $access,
+                    ];
+                })
                 ->reject(fn (array $row) => $managerId && $row['user_id'] === $managerId)
                 ->unique('user_id')
                 ->values();

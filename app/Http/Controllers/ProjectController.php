@@ -6,6 +6,7 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Services\PermissionService;
 use App\Services\ProjectAccessService;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,8 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly ProjectService $projectService,
-        private readonly ProjectAccessService $accessService
+        private readonly ProjectAccessService $accessService,
+        private readonly PermissionService $permissionService
     ) {}
 
     public function index(Request $request): Response
@@ -28,8 +30,10 @@ class ProjectController extends Controller
         ));
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $this->permissionService->authorize($request->user(), 'projects.manage');
+
         return Inertia::render('Projects/Create', [
             'formOptions' => $this->projectService->getFormOptions(),
         ]);
@@ -37,7 +41,13 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): RedirectResponse
     {
-        $project = $this->projectService->create($request->validated(), $request->user());
+        $data = $request->validated();
+
+        if (empty($data['manager_id']) && ! $this->permissionService->isSuperAdmin($request->user())) {
+            $data['manager_id'] = $request->user()->id;
+        }
+
+        $project = $this->projectService->create($data, $request->user());
 
         return redirect()
             ->back()

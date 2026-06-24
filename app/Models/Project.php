@@ -73,10 +73,6 @@ class Project extends Model
         return $query->where(function (Builder $q) use ($user) {
             $q->where('manager_id', $user->id)
                 ->orWhereHas('members', fn (Builder $m) => $m->where('user_id', $user->id));
-
-            if ($user->department_id) {
-                $q->orWhere('department_id', $user->department_id);
-            }
         });
     }
 

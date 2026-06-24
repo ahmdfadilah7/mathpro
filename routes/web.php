@@ -32,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('/navbar/search', [NavbarController::class, 'search'])->name('navbar.search');
+    Route::post('/navbar/notifications/dismiss', [NavbarController::class, 'dismissNotification'])
+        ->name('navbar.notifications.dismiss');
+    Route::post('/navbar/notifications/dismiss-all', [NavbarController::class, 'dismissAllNotifications'])
+        ->name('navbar.notifications.dismiss-all');
 
     Route::resource('projects', ProjectController::class);
 
@@ -77,9 +81,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
         ->name('attachments.download');
 
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])
+        ->middleware('permission:reports.view')
+        ->name('reports.index');
+    Route::get('/reports/export/projects', [ReportController::class, 'exportProjects'])
+        ->middleware('permission:reports.view')
+        ->name('reports.export.projects');
+    Route::get('/reports/export/tasks', [ReportController::class, 'exportTasks'])
+        ->middleware('permission:reports.view')
+        ->name('reports.export.tasks');
 
-    Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
+    Route::get('/activity', [ActivityLogController::class, 'index'])
+        ->middleware('permission:projects.view')
+        ->name('activity.index');
 
     Route::middleware('super_admin')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);

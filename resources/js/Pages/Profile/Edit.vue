@@ -4,6 +4,7 @@ import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import {
     BuildingOffice2Icon,
     EnvelopeIcon,
@@ -16,6 +17,9 @@ defineProps({
 });
 
 const user = usePage().props.auth.user;
+const managedProjectsCount = computed(
+    () => usePage().props.auth?.abilities?.managed_projects_count ?? 0
+);
 </script>
 
 <template>
@@ -60,6 +64,12 @@ const user = usePage().props.auth.user;
                         <span class="inline-flex items-center gap-1.5">
                             <BriefcaseIcon class="h-4 w-4 text-brand-500" />
                             {{ user.role?.name ?? 'Member' }}
+                            <span
+                                v-if="managedProjectsCount > 0"
+                                class="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700"
+                            >
+                                PM {{ managedProjectsCount }} project
+                            </span>
                         </span>
                     </div>
                 </div>

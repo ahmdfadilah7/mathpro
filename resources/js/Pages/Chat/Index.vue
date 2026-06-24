@@ -5,6 +5,7 @@ import MessageBubble from '@/Components/Chat/MessageBubble.vue';
 import MessageComposer from '@/Components/Chat/MessageComposer.vue';
 import { confirmDelete } from '@/utils/confirm';
 import { notifyError, notifySuccess } from '@/utils/notify';
+import { useLiveRefresh } from '@/composables/useLiveRefresh';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch, nextTick } from 'vue';
 import {
@@ -31,6 +32,11 @@ const expandedProjectId = ref(
 );
 
 const isTaskMode = computed(() => props.mode === 'task');
+
+useLiveRefresh({
+    interval: 30000,
+    only: ['messages', 'teamProjects', 'taskThreads', 'activePanel', 'navbar'],
+});
 
 const scrollToBottom = () => {
     nextTick(() => {

@@ -44,7 +44,7 @@ class ProjectService
         return [
             'projects' => ProjectResource::collection($projects),
             'filters' => $filters,
-            'stats' => $this->getStats(),
+            'stats' => $this->getStats($viewer),
             'filterOptions' => $this->getFilterOptions(),
         ];
     }
@@ -216,13 +216,15 @@ class ProjectService
     }
 
     /** @return array<string, int> */
-    public function getStats(): array
+    public function getStats(User $viewer): array
     {
+        $query = Project::query()->accessibleBy($viewer);
+
         return [
-            'total' => Project::count(),
-            'active' => Project::where('status', ProjectStatus::Active)->count(),
-            'planning' => Project::where('status', ProjectStatus::Planning)->count(),
-            'completed' => Project::where('status', ProjectStatus::Completed)->count(),
+            'total' => (clone $query)->count(),
+            'active' => (clone $query)->where('status', ProjectStatus::Active)->count(),
+            'planning' => (clone $query)->where('status', ProjectStatus::Planning)->count(),
+            'completed' => (clone $query)->where('status', ProjectStatus::Completed)->count(),
         ];
     }
 

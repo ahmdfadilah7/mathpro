@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PermissionService;
 
 class User extends Authenticatable
 {
@@ -66,6 +67,11 @@ class User extends Authenticatable
         }
 
         return Storage::disk('public')->url($this->avatar);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return app(PermissionService::class)->has($this, $permission);
     }
 
     public function role(): BelongsTo

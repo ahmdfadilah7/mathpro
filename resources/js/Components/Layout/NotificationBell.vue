@@ -1,6 +1,6 @@
 <script setup>
 import Dropdown from '@/Components/Dropdown.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { BellIcon } from '@heroicons/vue/24/outline';
 
@@ -16,6 +16,25 @@ const colorClass = {
     brand: 'bg-brand-50 text-brand-700',
     emerald: 'bg-emerald-50 text-emerald-700',
     slate: 'bg-slate-100 text-slate-600',
+};
+
+const dismissOne = (notificationKey, href) => {
+    router.post(
+        route('navbar.notifications.dismiss'),
+        { notification_key: notificationKey },
+        {
+            preserveScroll: true,
+            only: ['navbar'],
+            onFinish: () => router.visit(href),
+        }
+    );
+};
+
+const dismissAll = () => {
+    router.post(route('navbar.notifications.dismiss-all'), {}, {
+        preserveScroll: true,
+        only: ['navbar'],
+    });
 };
 </script>
 
@@ -37,19 +56,30 @@ const colorClass = {
             </button>
         </template>
         <template #content>
-            <div class="border-b border-slate-100 px-4 py-3">
-                <p class="text-sm font-bold text-slate-900">Notifikasi</p>
-                <p class="text-xs text-slate-500">
-                    {{ count ? `${count} perlu perhatian` : 'Semua sudah dibaca' }}
-                </p>
+            <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div>
+                    <p class="text-sm font-bold text-slate-900">Notifikasi</p>
+                    <p class="text-xs text-slate-500">
+                        {{ count ? `${count} perlu perhatian` : 'Semua sudah dibaca' }}
+                    </p>
+                </div>
+                <button
+                    v-if="count > 0"
+                    type="button"
+                    class="text-xs font-medium text-brand-600 hover:text-brand-700"
+                    @click.stop="dismissAll"
+                >
+                    Tandai semua
+                </button>
             </div>
 
             <div v-if="notifications.length" class="max-h-96 overflow-y-auto">
-                <Link
+                <button
                     v-for="item in notifications"
                     :key="item.id"
-                    :href="item.href"
-                    class="flex gap-3 border-b border-slate-50 px-4 py-3 transition last:border-0 hover:bg-slate-50"
+                    type="button"
+                    class="flex w-full gap-3 border-b border-slate-50 px-4 py-3 text-left transition last:border-0 hover:bg-slate-50"
+                    @click="dismissOne(item.id, item.href)"
                 >
                     <span
                         class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
@@ -74,7 +104,7 @@ const colorClass = {
                             {{ item.created_at_label }}
                         </span>
                     </span>
-                </Link>
+                </button>
             </div>
 
             <div v-else class="px-4 py-8 text-center text-sm text-slate-500">

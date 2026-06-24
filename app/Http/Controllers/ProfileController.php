@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\ActivityLogService;
 use App\Services\ProfileAvatarService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +16,8 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     public function __construct(
-        private readonly ProfileAvatarService $profileAvatarService
+        private readonly ProfileAvatarService $profileAvatarService,
+        private readonly ActivityLogService $activityLogService
     ) {}
 
     /**
@@ -36,13 +38,16 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $validated = $request->safe()->only(['name', 'email']);
+        $avatarChanged = false;
 
         if ($request->boolean('remove_avatar')) {
             $this->profileAvatarService->remove($user);
+            $avatarChanged = true;
         }
 
         if ($request->hasFile('avatar')) {
             $this->profileAvatarService->store($user, $request->file('avatar'));
+            $avatarChanged = true;
         }
 
         $user->fill($validated);
@@ -51,7 +56,30 @@ class ProfileController extends Controller
             $user->email_verified_at = null;
         }
 
+        $profileChanged = $user->isDirty(['name', 'email']);
         $user->save();
+
+        if ($avatarChanged) {
+            $this->activityLogService->log(
+                $user,
+                'avatar_updated',
+                $user,
+                'Memperbarui foto profil',
+                [],
+                $request
+            );
+        }
+
+        if ($profileChanged) {
+            $this->activityLogService->log(
+                $user,
+                'profile_updated',
+                $user,
+                'Memperbarui informasi profil',
+                [],
+                $request
+            );
+        }
 
         return Redirect::route('profile.edit')->with('swal', [
             'title' => 'Berhasil!',

@@ -6,6 +6,7 @@ use App\Enums\ProjectPriority;
 use App\Enums\ProjectStatus;
 use App\Models\Department;
 use App\Models\Project;
+use App\Services\PermissionService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +14,7 @@ class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return app(PermissionService::class)->has($this->user(), 'projects.manage');
     }
 
     protected function prepareForValidation(): void

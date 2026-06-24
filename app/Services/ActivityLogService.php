@@ -31,6 +31,9 @@ class ActivityLogService
         'logout' => ['label' => 'Logout', 'color' => 'slate'],
         'bulk_assigned' => ['label' => 'Bulk assign', 'color' => 'sky'],
         'bulk_status' => ['label' => 'Bulk status', 'color' => 'amber'],
+        'profile_updated' => ['label' => 'Profil diperbarui', 'color' => 'brand'],
+        'avatar_updated' => ['label' => 'Foto profil', 'color' => 'indigo'],
+        'password_changed' => ['label' => 'Password diubah', 'color' => 'amber'],
     ];
 
     /** @return array<string, mixed> */

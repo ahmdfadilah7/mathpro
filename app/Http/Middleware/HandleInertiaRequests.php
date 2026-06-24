@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\NotificationService;
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -21,7 +22,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user()
-                    ? $request->user()->load(['role:id,name,slug', 'department:id,name,division_id', 'department.division:id,name'])
+                    ? $request->user()->load(['role:id,name,slug,permissions', 'department:id,name,division_id', 'department.division:id,name'])
+                    : null,
+                'abilities' => $request->user()
+                    ? app(PermissionService::class)->abilitiesFor($request->user())
                     : null,
             ],
             'app' => [

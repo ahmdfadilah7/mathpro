@@ -246,4 +246,27 @@ class ReportService
             ->values()
             ->all();
     }
+
+    /** @return list<array<string, mixed>> */
+    public function exportableTasks(User $user, ?int $projectId = null): array
+    {
+        $projectId = $this->resolveProjectFilter($user, $projectId);
+
+        return $this->accessibleTasksQuery($user, $projectId)
+            ->with(['project:id,code,name', 'assignee:id,name'])
+            ->orderBy('project_id')
+            ->orderBy('task_number')
+            ->get()
+            ->map(fn (Task $task) => [
+                'task_number' => $task->task_number,
+                'title' => $task->title,
+                'project_code' => $task->project?->code,
+                'status_label' => $task->status->label(),
+                'priority_label' => $task->priority->label(),
+                'assignee_name' => $task->assignee?->name,
+                'due_date' => $task->due_date?->format('d M Y'),
+            ])
+            ->values()
+            ->all();
+    }
 }

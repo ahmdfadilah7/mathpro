@@ -58,7 +58,7 @@ class ProjectAccessService
             return true;
         }
 
-        return $this->isSameDivisionDepartment($user, $project);
+        return false;
     }
 
     public function canManageProject(User $user, Project $project): bool
@@ -160,7 +160,18 @@ class ProjectAccessService
         }
 
         if ($status === TaskStatus::Done) {
-            return $this->isFullTaskManager($user, $project);
+            if ($this->isFullTaskManager($user, $project)) {
+                return true;
+            }
+
+            if (
+                (int) $task->assignee_id === (int) $user->id
+                && $this->resolveMembershipAccess($user, $project) === ProjectMemberAccess::Contributor
+            ) {
+                return true;
+            }
+
+            return false;
         }
 
         return true;
@@ -235,13 +246,11 @@ class ProjectAccessService
     {
         $isManager = $this->isProjectManager($user, $project);
         $membership = $this->resolveMembershipAccess($user, $project);
-        $isDeptPeer = $this->isSameDivisionDepartment($user, $project) && ! $isManager && $membership === null;
 
         $accessLabel = match (true) {
             $this->isSuperAdmin($user) && ! $isManager => 'Super Admin',
             $isManager => 'Project Manager',
             $membership !== null => $membership->label(),
-            $isDeptPeer => 'Tim divisi (lihat saja)',
             default => null,
         };
 
@@ -254,7 +263,7 @@ class ProjectAccessService
             'access' => $membership?->value,
             'access_label' => $accessLabel,
             'is_manager' => $isManager,
-            'is_department_peer' => $isDeptPeer,
+            'is_department_peer' => false,
             'is_super_admin' => $this->isSuperAdmin($user),
         ];
     }

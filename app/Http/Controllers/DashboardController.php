@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProjectStatus;
 use App\Enums\TaskStatus;
 use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\ActivityLogService;
@@ -22,26 +23,34 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        $accessibleProjects = Project::query()->accessibleBy($user);
+        $accessibleProjectIds = (clone $accessibleProjects)->pluck('id');
+
         $myTasksQuery = Task::query()
             ->with(['project:id,name,code,color'])
             ->where('assignee_id', $user->id);
 
+        $scopedTasksQuery = Task::query()->whereIn('project_id', $accessibleProjectIds);
+
         $stats = [
-            'total_projects' => Project::count(),
-            'active_projects' => Project::where('status', ProjectStatus::Active)->count(),
-            'total_tasks' => Task::count(),
+            'total_projects' => (clone $accessibleProjects)->count(),
+            'active_projects' => (clone $accessibleProjects)
+                ->where('status', ProjectStatus::Active)
+                ->count(),
+            'total_tasks' => (clone $scopedTasksQuery)->count(),
             'my_tasks' => (clone $myTasksQuery)->count(),
             'my_pending_tasks' => (clone $myTasksQuery)
                 ->whereNotIn('status', [TaskStatus::Done])
                 ->count(),
             'unassigned_tasks' => Task::query()->unassignedInMemberProjects($user)->count(),
-            'overdue_tasks' => Task::whereNotIn('status', [TaskStatus::Done])
+            'overdue_tasks' => (clone $scopedTasksQuery)
+                ->whereNotIn('status', [TaskStatus::Done])
                 ->whereDate('due_date', '<', now())
                 ->count(),
-            'team_members' => User::where('is_active', true)->count(),
+            'team_members' => $this->scopedTeamMemberCount($accessibleProjectIds),
         ];
 
-        $projectsByStatus = Project::query()
+        $projectsByStatus = (clone $accessibleProjects)
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
@@ -53,7 +62,7 @@ class DashboardController extends Controller
             ])
             ->values();
 
-        $recentProjects = Project::query()
+        $recentProjects = (clone $accessibleProjects)
             ->with(['department:id,name', 'manager:id,name,avatar'])
             ->latest()
             ->limit(5)
@@ -100,5 +109,27 @@ class DashboardController extends Controller
             'myUpcomingTasks' => $myUpcomingTasks,
             'activityFeed' => $activityFeed,
         ]);
+    }
+
+    /** @param  \Illuminate\Support\Collection<int, int>  $accessibleProjectIds */
+    private function scopedTeamMemberCount($accessibleProjectIds): int
+    {
+        if ($accessibleProjectIds->isEmpty()) {
+            return 0;
+        }
+
+        $memberIds = ProjectMember::query()
+            ->whereIn('project_id', $accessibleProjectIds)
+            ->pluck('user_id');
+
+        $managerIds = Project::query()
+            ->whereIn('id', $accessibleProjectIds)
+            ->whereNotNull('manager_id')
+            ->pluck('manager_id');
+
+        return User::query()
+            ->where('is_active', true)
+            ->whereIn('id', $memberIds->merge($managerIds)->unique()->filter())
+            ->count();
     }
 }

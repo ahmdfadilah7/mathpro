@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\TaskStatus;
 use App\Models\Conversation;
+use App\Models\NotificationDismissal;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -16,22 +17,60 @@ class NotificationService
     /** @return list<array<string, mixed>> */
     public function forUser(User $user): array
     {
-        $items = collect()
-            ->merge($this->taskNotifications($user))
-            ->merge($this->unassignedNotification($user))
-            ->merge($this->chatNotifications($user))
+        $dismissed = $this->dismissedKeys($user);
+
+        return collect($this->generateNotifications($user))
+            ->reject(fn (array $item) => in_array($item['id'], $dismissed, true))
             ->sortByDesc('sort_at')
             ->take(self::LIMIT)
             ->map(fn (array $item) => collect($item)->except('sort_at')->all())
             ->values()
             ->all();
-
-        return $items;
     }
 
-    public function countForUser(User $user): int
+    public function unreadCountFor(User $user): int
     {
         return count($this->forUser($user));
+    }
+
+    public function dismiss(User $user, string $notificationKey): void
+    {
+        NotificationDismissal::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'notification_key' => $notificationKey,
+            ],
+            ['dismissed_at' => now()]
+        );
+    }
+
+    public function dismissAll(User $user): int
+    {
+        $keys = collect($this->generateNotifications($user))->pluck('id');
+
+        foreach ($keys as $key) {
+            $this->dismiss($user, (string) $key);
+        }
+
+        return $keys->count();
+    }
+
+    /** @return list<string> */
+    private function dismissedKeys(User $user): array
+    {
+        return NotificationDismissal::query()
+            ->where('user_id', $user->id)
+            ->pluck('notification_key')
+            ->all();
+    }
+
+    /** @return Collection<int, array<string, mixed>> */
+    private function generateNotifications(User $user): Collection
+    {
+        return collect()
+            ->merge($this->taskNotifications($user))
+            ->merge($this->unassignedNotification($user))
+            ->merge($this->chatNotifications($user));
     }
 
     /** @return Collection<int, array<string, mixed>> */

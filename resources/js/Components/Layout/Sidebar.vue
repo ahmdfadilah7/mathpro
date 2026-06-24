@@ -2,10 +2,24 @@
 import SidebarLink from '@/Components/Layout/SidebarLink.vue';
 import { adminNavigation, navigation } from '@/config/navigation';
 import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const page = usePage();
 
-const isSuperAdmin = () => page.props.auth.user?.role?.slug === 'super-admin';
+const abilities = computed(() => page.props.auth?.abilities ?? {});
+
+const canShow = (item) => {
+    if (!item.ability) {
+        return true;
+    }
+
+    return Boolean(abilities.value[item.ability]);
+};
+
+const visibleNavigation = computed(() => navigation.filter(canShow));
+const visibleAdminNavigation = computed(() =>
+    abilities.value.is_super_admin ? adminNavigation : []
+);
 
 const isActive = (routeName) => {
     const current = route().current();
@@ -43,7 +57,7 @@ const isActive = (routeName) => {
                 Menu
             </p>
             <SidebarLink
-                v-for="item in navigation"
+                v-for="item in visibleNavigation"
                 :key="item.route"
                 :href="route(item.route)"
                 :active="isActive(item.route)"
@@ -51,12 +65,12 @@ const isActive = (routeName) => {
                 :label="item.name"
             />
 
-            <template v-if="isSuperAdmin()">
+            <template v-if="visibleAdminNavigation.length">
                 <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     Administration
                 </p>
                 <SidebarLink
-                    v-for="item in adminNavigation"
+                    v-for="item in visibleAdminNavigation"
                     :key="item.route"
                     :href="route(item.route)"
                     :active="isActive(item.route)"
@@ -94,6 +108,12 @@ const isActive = (routeName) => {
                     </p>
                     <p class="truncate text-xs text-slate-500">
                         {{ page.props.auth.user?.role?.name ?? 'Member' }}
+                        <span
+                            v-if="abilities.managed_projects_count > 0"
+                            class="text-brand-600"
+                        >
+                            · PM {{ abilities.managed_projects_count }} project
+                        </span>
                     </p>
                 </div>
             </Link>

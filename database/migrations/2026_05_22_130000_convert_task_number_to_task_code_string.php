@@ -1,13 +1,21 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE tasks MODIFY task_number VARCHAR(30) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE tasks MODIFY task_number VARCHAR(30) NOT NULL');
+        } else {
+            Schema::table('tasks', function (Blueprint $table) {
+                $table->string('task_number', 30)->nullable(false)->change();
+            });
+        }
 
         $rows = DB::table('tasks')
             ->join('projects', 'projects.id', '=', 'tasks.project_id')
@@ -40,6 +48,12 @@ return new class extends Migration
             DB::table('tasks')->where('id', $row->id)->update(['task_number' => (string) $num]);
         }
 
-        DB::statement('ALTER TABLE tasks MODIFY task_number INT UNSIGNED NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE tasks MODIFY task_number INT UNSIGNED NOT NULL');
+        } else {
+            Schema::table('tasks', function (Blueprint $table) {
+                $table->unsignedInteger('task_number')->nullable(false)->change();
+            });
+        }
     }
 };

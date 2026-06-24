@@ -4,11 +4,14 @@ import Sidebar from '@/Components/Layout/Sidebar.vue';
 import ConfirmDialogHost from '@/Components/UI/ConfirmDialogHost.vue';
 import FlashMessage from '@/Components/UI/FlashMessage.vue';
 import SuccessDialogHost from '@/Components/UI/SuccessDialogHost.vue';
+import { useLiveRefresh } from '@/composables/useLiveRefresh';
 
 defineProps({
     title: { type: String, default: 'Dashboard' },
     subtitle: { type: String, default: '' },
 });
+
+useLiveRefresh({ interval: 45000, only: ['navbar'] });
 </script>
 
 <template>

@@ -5,7 +5,7 @@ import EmptyState from '@/Components/UI/EmptyState.vue';
 import ProgressBar from '@/Components/UI/ProgressBar.vue';
 import SearchableSelect from '@/Components/UI/SearchableSelect.vue';
 import Avatar from '@/Components/UI/Avatar.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import {
     FunnelIcon,
@@ -20,6 +20,9 @@ const props = defineProps({
     stats: Object,
     filterOptions: Object,
 });
+
+const page = usePage();
+const canCreateProject = computed(() => page.props.auth?.abilities?.can_manage_projects ?? false);
 
 const localFilters = ref({ ...props.filters });
 
@@ -129,7 +132,11 @@ const onSearchInput = () => {
                         @input="onSearchInput"
                     />
                 </div>
-                <Link :href="route('projects.create')" class="btn-primary shrink-0">
+                <Link
+                    v-if="canCreateProject"
+                    :href="route('projects.create')"
+                    class="btn-primary shrink-0"
+                >
                     <PlusIcon class="h-5 w-5" />
                     Project baru
                 </Link>
@@ -268,9 +275,13 @@ const onSearchInput = () => {
             <EmptyState
                 v-else
                 title="Belum ada project"
-                description="Mulai dengan membuat project pertama untuk tim Anda."
-                action-label="Buat project"
-                :action-href="route('projects.create')"
+                :description="
+                    canCreateProject
+                        ? 'Mulai dengan membuat project pertama untuk tim Anda.'
+                        : 'Belum ada project yang dapat Anda akses.'
+                "
+                :action-label="canCreateProject ? 'Buat project' : null"
+                :action-href="canCreateProject ? route('projects.create') : null"
                 :icon="Squares2X2Icon"
             />
 
