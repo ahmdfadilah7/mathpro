@@ -1,4 +1,5 @@
 import {
+    BookOpenIcon,
     CalendarDaysIcon,
     ChartBarIcon,
     ChatBubbleLeftRightIcon,
@@ -75,6 +76,13 @@ export const navigation = [
 ];
 
 export const adminNavigation = [
+    {
+        name: 'Dokumentasi',
+        route: 'documentation.index',
+        icon: BookOpenIcon,
+        section: 'admin',
+        ability: 'is_super_admin',
+    },
     {
         name: 'Roles',
         route: 'roles.index',

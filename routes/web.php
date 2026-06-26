@@ -7,6 +7,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\MyTaskController;
 use App\Http\Controllers\UnassignedTaskController;
 use App\Http\Controllers\ProfileController;
@@ -96,6 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('activity.index');
 
     Route::middleware('super_admin')->group(function () {
+        Route::get('/documentation', [DocumentationController::class, 'index'])->name('documentation.index');
         Route::resource('roles', RoleController::class)->except(['show']);
         Route::resource('users', UserController::class)->except(['show']);
     });

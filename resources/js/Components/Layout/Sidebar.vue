@@ -29,6 +29,7 @@ const isActive = (routeName) => {
     if (routeName === 'projects.index') return current?.startsWith('projects.');
     if (routeName === 'roles.index') return current?.startsWith('roles.');
     if (routeName === 'users.index') return current?.startsWith('users.');
+    if (routeName === 'documentation.index') return current?.startsWith('documentation.');
     const base = routeName.replace('.index', '');
     return current === routeName || current?.startsWith(`${base}.`);
 };

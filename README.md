@@ -63,19 +63,149 @@ npm run dev
 
 Buka `http://localhost:8000`
 
+### Mode development (disarankan)
+
+Jalankan server, queue, log, dan Vite sekaligus:
+
+```bash
+composer dev
+```
+
+Perintah ini menjalankan `php artisan serve`, `queue:listen` (email assign task), `pail` (log), dan `npm run dev`.
+
+---
+
+## Panduan Penggunaan
+
+### 1. Login
+
+1. Buka halaman login (`/login`)
+2. Masukkan **email** dan password **`password`** (lihat [Akun Demo](#akun-demo))
+3. Setelah login, Anda diarahkan ke **Dashboard**
+
+### 2. Navigasi utama
+
+| Menu | Fungsi |
+|------|--------|
+| **Dashboard** | Ringkasan statistik, aktivitas terbaru, dan anggota tim (scoped ke project Anda) |
+| **Projects** | Daftar & detail project — task board, anggota, timeline |
+| **My Tasks** | Task yang ditugaskan ke Anda |
+| **Calendar** | Jadwal task berdasarkan due date |
+| **Unassigned** | Task tanpa assignee — tampil jika Anda bisa assign di minimal satu project |
+| **Chat** | Obrolan tim per project + komentar pada task |
+| **Reports** | Statistik & grafik — Manager/Lead bisa export CSV |
+| **Activity Log** | Riwayat aksi sistem (create task, assign, update profil, dll.) |
+| **Roles / Users** | Hanya **Super Admin** — kelola role & pengguna |
+
+Menu sidebar otomatis disembunyikan jika role Anda tidak punya permission yang diperlukan.
+
+### 3. Projects
+
+- **Lihat project:** Klik nama project di daftar atau dari Dashboard
+- **Buat project baru:** Tombol **New Project** — hanya **Project Manager** & Super Admin (`projects.manage`)
+- **Kelola anggota:** Tab anggota di detail project — PM menambah/mengubah akses (Viewer / Contributor / Admin)
+- **Kelola task:** Drag-and-drop di board, edit status, assignee, due date, prioritas
+- **Akses project** ditentukan oleh: Super Admin, `manager_id`, atau keanggotaan `project_members`
+
+### 4. Task & Unassigned
+
+- **Contributor** dapat menandai task **Done** pada task yang ditugaskan ke dirinya
+- **Admin anggota** atau PM dapat assign task ke anggota tim
+- Menu **Unassigned** menampilkan task tanpa assignee dari project yang Anda kelola/assign
+- Saat task ditetapkan ke seseorang, sistem mengirim **email notifikasi** (via queue)
+
+### 5. Chat
+
+- Pilih project di panel kiri untuk chat tim
+- Mode **Task** — komentar pada thread task tertentu
+- Pesan baru ter-refresh otomatis setiap **30 detik** saat tab browser aktif
+- Lampiran file didukung; pesan bisa dihapus oleh pengirim
+
+### 6. Pencarian & notifikasi (navbar)
+
+- **Global Search** (`Ctrl+K` / klik ikon search) — cari project, task, dan user
+- **Lonceng notifikasi** — task overdue, jatuh tempo hari ini, unassigned, chat belum dibaca
+- Notifikasi bisa ditandai **dibaca** per item atau **semua sekaligus**
+- Badge notifikasi ter-refresh otomatis setiap **45 detik** saat tab aktif
+
+### 7. Reports & export
+
+1. Buka **Reports** (role dengan `reports.view`)
+2. Opsional: filter per project
+3. Klik **Export Project (CSV)** atau **Export Task (CSV)** untuk unduh data
+
+### 8. Profile
+
+- Ubah nama, email, foto profil
+- Ganti password — ada indikator **kekuatan password**
+- Perubahan profil, foto, dan password tercatat di **Activity Log**
+
+### 9. Super Admin — Roles & Users
+
+Login sebagai `admin@mathpro.test` untuk:
+
+- Mengelola **role** dan permission global
+- CRUD **pengguna** (aktif/nonaktif, role, departemen)
+- Mengakses semua project tanpa keanggotaan
+
+### Skenario uji per role
+
+| Skenario | Akun yang dipakai |
+|----------|-------------------|
+| Akses penuh sistem | `admin@mathpro.test` |
+| Buat project & kelola ERP/Mobile/FIN | `manager@mathpro.test` |
+| PM hanya project Marketing | `diana@mathpro.test` |
+| Assign task & admin tim ERP | `rio@mathpro.test` |
+| Member biasa — task sendiri saja | `member@mathpro.test` |
+| Contributor + Viewer di project berbeda | `siti@mathpro.test` |
+| PM project infrastruktur (via `manager_id`) | `agus@mathpro.test` |
+| Member tidak bisa lihat ERP | Login `member@` → project ERP tidak muncul |
+| Member tidak bisa Reports | Login `member@` → menu Reports disembunyikan |
+
+---
+
 ## Akun Demo
 
-Password semua akun: **`password`**
+> **Password semua akun:** `password`  
+> Data dihasilkan oleh `php artisan migrate:fresh --seed`.
 
-| Email | Role global | Skenario uji |
-|-------|-------------|--------------|
-| admin@mathpro.test | Super Admin | Semua menu + Roles/Users |
-| manager@mathpro.test | Project Manager | PM ERP, Mobile, FIN — bisa buat project |
-| diana@mathpro.test | Project Manager | PM Marketing saja |
-| rio@mathpro.test | Team Lead | Admin anggota ERP, assign task |
-| member@mathpro.test | Member | Contributor ERP, My Tasks saja |
-| siti@mathpro.test | Member | Contributor ERP, Viewer MKT |
-| agus@mathpro.test | Member | PM project INF (via `manager_id`) |
+### Ringkasan cepat
+
+| Nama | Email | Role | Departemen |
+|------|-------|------|------------|
+| Ahmad Rizki | admin@mathpro.test | Super Admin | DEV |
+| Sarah Wijaya | manager@mathpro.test | Project Manager | DEV |
+| Diana Putri | diana@mathpro.test | Project Manager | DIGITAL |
+| Rio Pratama | rio@mathpro.test | Team Lead | DEV |
+| Budi Santoso | member@mathpro.test | Member | QA |
+| Siti Aminah | siti@mathpro.test | Member | DEV |
+| Agus Hermawan | agus@mathpro.test | Member | INFRA |
+
+### Detail akses per akun
+
+| Email | Menu yang tampil | Project & peran |
+|-------|------------------|-----------------|
+| **admin@mathpro.test** | Semua menu + Roles/Users | Semua project (bypass) |
+| **manager@mathpro.test** | Dashboard, Projects, My Tasks, Calendar, Unassigned, Chat, Reports, Activity | **PM:** ERP, Mobile, Portal FIN — bisa buat project baru |
+| **diana@mathpro.test** | Sama seperti PM (tanpa Roles/Users) | **PM:** Kampanye Digital Q2 — tidak akses ERP |
+| **rio@mathpro.test** | Sama seperti PM kecuali **tidak bisa buat project** | **Admin** anggota ERP & Mobile; **Contributor** INF |
+| **member@mathpro.test** | Dashboard, Projects, My Tasks, Calendar, Chat, Activity — **tanpa** Reports & Unassigned* | **Contributor** ERP — task UAT & testing Mobile |
+| **siti@mathpro.test** | Sama seperti member | **Contributor** ERP & Mobile; **Viewer** Marketing |
+| **agus@mathpro.test** | Sama seperti member | **PM** Migrasi Infrastruktur Cloud; **Contributor** tidak ada di project lain |
+
+\* Menu **Unassigned** hanya muncul jika user punya hak assign di minimal satu project.
+
+### Project seed data
+
+| Kode | Nama | PM | Status |
+|------|------|-----|--------|
+| PRJ-ERP-001 | Modernisasi ERP | Sarah | Active |
+| PRJ-MOB-002 | Redesign Aplikasi Mobile | Sarah | Active |
+| PRJ-MKT-003 | Kampanye Digital Q2 | Diana | Planning |
+| PRJ-INF-004 | Migrasi Infrastruktur Cloud | Agus | On Hold |
+| PRJ-FIN-005 | Portal Laporan Tahunan | Sarah | Completed |
+
+Beberapa task sengaja **tanpa assignee** dan ada yang **overdue** agar notifikasi navbar terisi.
 
 ### Uji akses cepat
 

@@ -73,6 +73,24 @@ class ProjectAccessTest extends TestCase
             ->assertOk();
     }
 
+    public function test_super_admin_can_access_documentation(): void
+    {
+        $user = User::query()->where('email', 'admin@mathpro.test')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('documentation.index'))
+            ->assertOk();
+    }
+
+    public function test_member_cannot_access_documentation(): void
+    {
+        $user = User::query()->where('email', 'member@mathpro.test')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('documentation.index'))
+            ->assertForbidden();
+    }
+
     /** @return array<string, mixed> */
     private function validProjectPayload(): array
     {
