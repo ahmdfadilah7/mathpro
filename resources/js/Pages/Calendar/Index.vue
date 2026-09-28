@@ -198,7 +198,7 @@ const taskBarColor = {
                 </div>
 
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <button
                             type="button"
                             class="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50"
@@ -208,7 +208,7 @@ const taskBarColor = {
                         >
                             <ChevronLeftIcon class="h-5 w-5" />
                         </button>
-                        <div class="min-w-[160px] text-center">
+                        <div class="min-w-[140px] flex-1 text-center sm:min-w-[160px] sm:flex-none">
                             <p class="text-lg font-bold text-slate-900">
                                 {{
                                     activeTab === 'calendar'
@@ -250,7 +250,7 @@ const taskBarColor = {
                             v-model="localFilters.project_id"
                             :options="projectFilterOptions"
                             placeholder="Filter project"
-                            class="min-w-[220px]"
+                            class="w-full sm:w-auto sm:min-w-[220px]"
                             @update:model-value="applyFilters"
                         />
                         <div class="flex gap-4 text-sm text-slate-500">

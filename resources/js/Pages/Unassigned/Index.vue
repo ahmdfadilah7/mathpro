@@ -383,7 +383,7 @@ const assignTask = (task) => {
                         v-model="bulkAssigneeId"
                         :options="bulkAssigneeOptions"
                         placeholder="Tugaskan ke…"
-                        class="min-w-[200px]"
+                        class="w-full sm:w-auto sm:min-w-[200px]"
                     />
                     <PrimaryButton
                         type="button"
@@ -417,10 +417,9 @@ const assignTask = (task) => {
                 <div
                     v-for="task in tasks.data"
                     :key="task.id"
-                    class="flex gap-3 p-5 transition sm:items-center sm:justify-between"
+                    class="flex flex-wrap gap-3 p-4 transition sm:flex-nowrap sm:items-center sm:justify-between sm:p-5"
                     :class="[
                         getTaskPriorityCardClass(task),
-                        !isDoneTab && canAssignTask(task) ? 'sm:flex-row' : 'flex-col sm:flex-row',
                         bulkProcessing || assigningId === task.id
                             ? 'animate-pulse opacity-80'
                             : '',
@@ -497,7 +496,7 @@ const assignTask = (task) => {
                     </div>
 
                     <div
-                        class="flex shrink-0 flex-col gap-2 sm:w-72 sm:items-stretch"
+                        class="flex w-full shrink-0 flex-col gap-2 sm:w-72 sm:items-stretch"
                     >
                         <template v-if="canAssignTask(task)">
                             <SearchableSelect

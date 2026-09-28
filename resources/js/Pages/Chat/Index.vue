@@ -9,6 +9,7 @@ import { useLiveRefresh } from '@/composables/useLiveRefresh';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch, nextTick } from 'vue';
 import {
+    ArrowLeftIcon,
     ChatBubbleLeftRightIcon,
     ClipboardDocumentListIcon,
     UserGroupIcon,
@@ -221,9 +222,13 @@ const isActiveProject = (project) =>
         title="Chat"
         subtitle="Percakapan per project dan diskusi komentar per task"
     >
-        <div class="card flex h-[calc(100vh-12rem)] min-h-[520px] overflow-hidden">
+        <div
+            class="card flex h-[calc(100dvh-7rem)] min-h-[480px] overflow-hidden sm:h-[calc(100dvh-9rem)] lg:h-[calc(100vh-12rem)] lg:min-h-[520px]"
+        >
+            <!-- Mobile: tampilkan daftar ATAU percakapan; md+: keduanya berdampingan -->
             <aside
-                class="flex w-full shrink-0 flex-col border-r border-slate-100 bg-slate-50/50 md:w-80 lg:w-96"
+                class="w-full shrink-0 flex-col border-r border-slate-100 bg-slate-50/50 md:flex md:w-72 lg:w-80 xl:w-96"
+                :class="activePanel ? 'hidden' : 'flex'"
             >
                 <div class="border-b border-slate-100 p-2">
                     <div class="inline-flex w-full rounded-xl bg-slate-100 p-1">
@@ -430,11 +435,21 @@ const isActiveProject = (project) =>
                 </div>
             </aside>
 
-            <section class="flex min-w-0 flex-1 flex-col bg-white">
+            <section
+                class="min-w-0 flex-1 flex-col bg-white md:flex"
+                :class="activePanel ? 'flex' : 'hidden'"
+            >
                 <template v-if="activePanel">
                     <div
-                        class="flex items-center gap-3 border-b border-slate-100 px-5 py-4"
+                        class="flex items-center gap-2 border-b border-slate-100 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4"
                     >
+                        <Link
+                            :href="route('chat.index', { mode: isTaskMode ? 'task' : 'team' })"
+                            class="-ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:hidden"
+                            aria-label="Kembali ke daftar percakapan"
+                        >
+                            <ArrowLeftIcon class="h-5 w-5" />
+                        </Link>
                         <div
                             v-if="activePanel.type === 'team'"
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
@@ -479,7 +494,7 @@ const isActiveProject = (project) =>
                         </Link>
                     </div>
 
-                    <div class="flex-1 space-y-4 overflow-y-auto p-5">
+                    <div class="flex-1 space-y-4 overflow-y-auto p-3 sm:p-5">
                         <p
                             v-if="!messages?.length"
                             class="py-12 text-center text-sm text-slate-400"

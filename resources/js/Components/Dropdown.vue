@@ -25,16 +25,28 @@ const closeOnEscape = (e) => {
 onMounted(() => document.addEventListener('keydown', closeOnEscape));
 onUnmounted(() => document.removeEventListener('keydown', closeOnEscape));
 
+// Panel lebar (80/96) di layar kecil dipasang ke viewport agar tidak terpotong
+const isWide = computed(() => ['80', '96'].includes(props.width.toString()));
+
 const widthClass = computed(() => {
     return {
         48: 'w-48',
         52: 'w-52',
-        80: 'w-80',
-        96: 'w-96',
+        80: 'sm:w-80',
+        96: 'sm:w-96',
     }[props.width.toString()] ?? 'w-48';
 });
 
+const positionClasses = computed(() =>
+    isWide.value
+        ? 'fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:top-auto'
+        : 'absolute max-w-[calc(100vw-1.5rem)]'
+);
+
 const alignmentClasses = computed(() => {
+    if (isWide.value && props.align !== 'left') {
+        return 'origin-top sm:origin-top-right sm:end-0';
+    }
     if (props.align === 'left') {
         return 'ltr:origin-top-left rtl:origin-top-right start-0';
     } else if (props.align === 'right') {
@@ -70,8 +82,8 @@ const open = ref(false);
         >
             <div
                 v-show="open"
-                class="absolute z-50 mt-2"
-                :class="[widthClass, alignmentClasses]"
+                class="z-50 mt-2"
+                :class="[positionClasses, widthClass, alignmentClasses]"
                 style="display: none"
                 @click="open = false"
             >

@@ -1,10 +1,13 @@
 <script setup>
 import SidebarLink from '@/Components/Layout/SidebarLink.vue';
 import { adminNavigation, navigation } from '@/config/navigation';
+import { useSidebar } from '@/composables/useSidebar';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { XMarkIcon } from '@heroicons/vue/24/outline';
 
 const page = usePage();
+const { isOpen, close } = useSidebar();
 
 const abilities = computed(() => page.props.auth?.abilities ?? {});
 
@@ -36,11 +39,31 @@ const isActive = (routeName) => {
 </script>
 
 <template>
-    <aside
-        class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-slate-200/80 bg-white"
+    <!-- Backdrop (mobile/tablet) -->
+    <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
     >
-        <div class="flex h-16 items-center gap-3 border-b border-slate-100 px-5">
-            <Link :href="route('dashboard')" class="flex items-center gap-3">
+        <div
+            v-if="isOpen"
+            class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+            aria-hidden="true"
+            @click="close"
+        />
+    </Transition>
+
+    <aside
+        id="app-sidebar"
+        class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-slate-200/80 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:z-30 lg:w-64 lg:translate-x-0 lg:shadow-none"
+        :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
+        aria-label="Navigasi utama"
+    >
+        <div class="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5">
+            <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-3">
                 <div
                     class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-white shadow-glow"
                 >
@@ -51,6 +74,14 @@ const isActive = (routeName) => {
                     <p class="text-[10px] font-medium text-brand-600">Project Management</p>
                 </div>
             </Link>
+            <button
+                type="button"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+                aria-label="Tutup menu"
+                @click="close"
+            >
+                <XMarkIcon class="h-5 w-5" />
+            </button>
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">

@@ -135,7 +135,7 @@ const onSearchInput = () => {
                 <Link
                     v-if="canCreateProject"
                     :href="route('projects.create')"
-                    class="btn-primary shrink-0"
+                    class="btn-primary w-full shrink-0 lg:w-auto"
                 >
                     <PlusIcon class="h-5 w-5" />
                     Project baru
@@ -177,7 +177,75 @@ const onSearchInput = () => {
 
         <!-- Table -->
         <div class="card overflow-hidden">
-            <div v-if="projects.data?.length" class="overflow-x-auto">
+            <!-- Mobile: daftar kartu -->
+            <ul v-if="projects.data?.length" class="divide-y divide-slate-100 md:hidden">
+                <li v-for="project in projects.data" :key="`m-${project.id}`" class="p-4">
+                    <div class="flex items-start gap-3">
+                        <Link
+                            :href="route('projects.show', project.id)"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white"
+                            :style="{ backgroundColor: project.color }"
+                            :aria-label="project.name"
+                        >
+                            {{ project.code.split('-')[1]?.slice(0, 2) ?? 'P' }}
+                        </Link>
+                        <div class="min-w-0 flex-1">
+                            <Link
+                                :href="route('projects.show', project.id)"
+                                class="block truncate font-semibold text-slate-900 hover:text-brand-600"
+                            >
+                                {{ project.name }}
+                            </Link>
+                            <p class="font-mono text-xs text-slate-400">{{ project.code }}</p>
+                        </div>
+                        <Link
+                            :href="route('projects.edit', project.id)"
+                            class="shrink-0 text-sm font-medium text-brand-600 hover:underline"
+                        >
+                            Edit
+                        </Link>
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <Badge :color="project.status_color" size="sm">
+                            {{ project.status_label }}
+                        </Badge>
+                        <span v-if="project.division?.name" class="truncate">
+                            {{ project.division.name }}
+                            <template v-if="project.department?.name">
+                                · {{ project.department.name }}
+                            </template>
+                        </span>
+                    </div>
+                    <div class="mt-3 flex items-center gap-3">
+                        <div class="flex-1">
+                            <ProgressBar
+                                :value="project.progress"
+                                :color="project.color"
+                                :show-label="true"
+                            />
+                        </div>
+                        <span
+                            class="shrink-0 text-xs"
+                            :class="project.is_overdue ? 'font-medium text-rose-600' : 'text-slate-500'"
+                        >
+                            {{ project.due_date_formatted ?? '—' }}
+                        </span>
+                    </div>
+                    <div
+                        v-if="project.manager"
+                        class="mt-3 flex items-center gap-2 text-xs text-slate-600"
+                    >
+                        <Avatar
+                            :name="project.manager.name"
+                            :initials="project.manager.initials"
+                            size="sm"
+                        />
+                        <span class="truncate">PM: {{ project.manager.name }}</span>
+                    </div>
+                </li>
+            </ul>
+
+            <div v-if="projects.data?.length" class="hidden overflow-x-auto md:block">
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-slate-100 bg-slate-50/80">
                         <tr>
@@ -288,12 +356,12 @@ const onSearchInput = () => {
             <!-- Pagination -->
             <div
                 v-if="projects.data?.length && projects.links?.length > 3"
-                class="flex items-center justify-between border-t border-slate-100 px-6 py-4"
+                class="flex flex-col items-center gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:justify-between sm:px-6"
             >
                 <p class="text-sm text-slate-500">
                     Menampilkan {{ projects.from }}–{{ projects.to }} dari {{ projects.total }}
                 </p>
-                <div class="flex gap-1">
+                <div class="flex flex-wrap justify-center gap-1">
                     <Link
                         v-for="(link, i) in projects.links"
                         :key="i"

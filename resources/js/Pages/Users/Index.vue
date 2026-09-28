@@ -96,7 +96,7 @@ const canDelete = (user) => user.id !== page.props.auth.user?.id;
     <Head title="Users" />
 
     <AppLayout title="Users" subtitle="Kelola akun pengguna per departemen">
-        <div class="mb-6 grid grid-cols-3 gap-4">
+        <div class="mb-6 grid grid-cols-3 gap-3 sm:gap-4">
             <div class="card p-4">
                 <p class="text-xs font-semibold uppercase text-slate-400">Total</p>
                 <p class="mt-1 text-2xl font-bold text-slate-900">{{ stats.total }}</p>
@@ -154,14 +154,63 @@ const canDelete = (user) => user.id !== page.props.auth.user?.id;
         </div>
 
         <div class="mb-4 flex justify-end">
-            <Link :href="route('users.create')" class="btn-primary inline-flex items-center gap-2">
+            <Link
+                :href="route('users.create')"
+                class="btn-primary inline-flex w-full items-center gap-2 sm:w-auto"
+            >
                 <PlusIcon class="h-4 w-4" />
                 Tambah user
             </Link>
         </div>
 
         <div class="card overflow-hidden">
-            <div class="overflow-x-auto">
+            <!-- Mobile: daftar kartu -->
+            <ul v-if="users.data?.length" class="divide-y divide-slate-100 md:hidden">
+                <li v-for="user in users.data" :key="`m-${user.id}`" class="p-4">
+                    <div class="flex items-start gap-3">
+                        <Avatar :name="user.name" :initials="user.initials" size="sm" />
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate font-semibold text-slate-900">{{ user.name }}</p>
+                            <p class="truncate text-xs text-slate-500">{{ user.email }}</p>
+                            <p v-if="user.position" class="truncate text-xs text-slate-400">
+                                {{ user.position }}
+                            </p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1">
+                            <Link
+                                :href="route('users.edit', user.id)"
+                                class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-brand-700"
+                                :aria-label="`Edit ${user.name}`"
+                            >
+                                <PencilSquareIcon class="h-4 w-4" />
+                            </Link>
+                            <button
+                                v-if="canDelete(user)"
+                                type="button"
+                                class="rounded-lg p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+                                :aria-label="`Hapus ${user.name}`"
+                                @click="deleteUser(user)"
+                            >
+                                <TrashIcon class="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2 pl-11 text-xs text-slate-500">
+                        <Badge color="brand" size="sm">{{ user.role?.name ?? '—' }}</Badge>
+                        <Badge :color="user.is_active ? 'emerald' : 'slate'" size="sm">
+                            {{ user.is_active ? 'Aktif' : 'Nonaktif' }}
+                        </Badge>
+                        <span v-if="user.department" class="truncate">
+                            {{ user.department.name }}
+                            <template v-if="user.department.division?.name">
+                                · {{ user.department.division.name }}
+                            </template>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full min-w-[720px] text-left text-sm">
                     <thead class="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <tr>

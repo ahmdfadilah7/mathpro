@@ -361,7 +361,7 @@ const applyBulkStatus = () => {
                         :options="bulkStatusOptions"
                         placeholder="Ubah status ke…"
                         :searchable="false"
-                        class="min-w-[180px]"
+                        class="w-full sm:w-auto sm:min-w-[180px]"
                     />
                     <PrimaryButton
                         type="button"
@@ -509,7 +509,7 @@ const applyBulkStatus = () => {
                                 :options="statusSelectOptions(task)"
                                 placeholder="Status"
                                 :searchable="false"
-                                class="w-full min-w-[160px] sm:w-44"
+                                class="w-full sm:w-44"
                                 @update:model-value="updateTaskStatus(task, $event)"
                             />
                             <p
